@@ -1,0 +1,60 @@
+# UMH Core MQTT Input Configuration
+# This file configures UMH Core to subscribe to MQTT topics from your IoT devices
+# and process them into the Unified Namespace structure
+
+# MQTT Input - Subscribe to device data from your IoT stack
+input:
+  mqtt:
+    client_id: YOUR_UNIQUE_CLIENT_ID
+    topics:
+      # Replace with your actual device topics
+      - tele/YOUR_ORG/YOUR_SITE/tasmota/desk/SENSOR
+      - tele/YOUR_ORG/YOUR_SITE/tasmota/siderack/SENSOR
+      - tele/YOUR_ORG/YOUR_SITE/tasmota/cabinet/SENSOR
+      # Add more topics as needed
+    urls:
+      - tcp://YOUR_PI_IP:1883
+
+# Data Processing Pipeline - Transforms MQTT data into UMH format
+pipeline:
+  processors:
+    - javascript:
+        defaults: |
+          let topic_parts = (msg.meta["mqtt_topic"] || "").split("/");
+          let device_id = topic_parts[4] || "unknown";
+          msg.meta.location_path = "YOUR_ORG.YOUR_SITE." + device_id;
+          msg.meta.data_contract = "_historian";
+          return msg;
+        conditions:
+          - if: msg.payload?.ENERGY?.Today != null
+            then: |-
+              msg.meta.tag_name = "kwhtoday";
+              msg.meta.timestamp_ms = Date.now();
+              msg.payload = msg.payload.ENERGY.Today;
+              return msg;
+          # Add more conditions for other data points as needed
+          # Example for power consumption:
+          # - if: msg.payload?.ENERGY?.Power != null
+          #   then: |-
+          #     msg.meta.tag_name = "power";
+          #     msg.meta.timestamp_ms = Date.now();
+          #     msg.payload = msg.payload.ENERGY.Power;
+          #     return msg;
+
+# Output to UMH Kafka topics
+output:
+  kafka:
+    addresses:
+      - localhost:9092
+    topic: umh.messages
+
+# Placeholder Values to Replace:
+# YOUR_UNIQUE_CLIENT_ID    - e.g., mqtt-ingestion-client-001
+# YOUR_ORG                 - e.g., DKLP (must match your organization)
+# YOUR_SITE                - e.g., Office (must match your site name)
+# YOUR_PI_IP               - e.g., 192.168.68.56 (your Raspberry Pi's fixed IP)
+
+# Notes:
+# 1. This creates the Unified Namespace structure: YOUR_ORG.YOUR_SITE.device_id
+# 2. The _historian data contract tells UMH this is time-series data
+# 3. Add more conditions in the processor for additional sensor data points

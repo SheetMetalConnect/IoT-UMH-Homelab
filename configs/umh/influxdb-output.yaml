@@ -1,0 +1,50 @@
+# UMH Core InfluxDB Output Configuration  
+# This file configures UMH Core to consume processed data from Kafka
+# and write it to your InfluxDB time-series database
+
+# Kafka Input - Read processed data from UMH Kafka topics
+input:
+  kafka:
+    addresses:
+      - localhost:9092  # UMH Core's internal Kafka
+    client_id: umh_influxdb_writer
+    consumer_group: influxdb_consumer
+    topics:
+      - umh.messages
+
+# Data Processing Pipeline - Convert UMH format to InfluxDB line protocol
+pipeline:
+  processors:
+    - bloblang: |-
+        root = if metadata("kafka_key").contains("umh.v1.YOUR_ORG.YOUR_SITE") && metadata("kafka_key").contains("_historian") {
+          "tasmota_sensors,topic=" + metadata("kafka_key") + " value=" + this.value.string() + " " + this.timestamp_ms.string()
+        } else {
+          deleted()
+        }
+
+# InfluxDB Output - Write time-series data to your database
+output:
+  http_client:
+    batching:
+      count: 1
+    headers:
+      Authorization: Token YOUR_INFLUX_TOKEN
+      Content-Type: text/plain
+    max_in_flight: 1
+    retry_period: 1s
+    timeout: 5s
+    url: http://YOUR_PI_IP:8086/api/v2/write?org=YOUR_ORG&bucket=YOUR_BUCKET&precision=ms
+    verb: POST
+
+# Placeholder Values to Replace:
+# YOUR_ORG                 - e.g., DKLP (must match MQTT input config)
+# YOUR_SITE                - e.g., Office (must match MQTT input config)  
+# YOUR_PI_IP               - e.g., 192.168.68.56 (your Raspberry Pi's fixed IP)
+# YOUR_INFLUX_TOKEN        - Your InfluxDB access token from setup
+# YOUR_BUCKET              - e.g., dklp (your InfluxDB bucket name)
+
+# Notes:
+# 1. This consumes data that was processed by the MQTT input configuration
+# 2. Only processes messages with _historian data contract (time-series data)
+# 3. Converts to InfluxDB line protocol format for storage
+# 4. Uses HTTP API to write directly to your InfluxDB instance
