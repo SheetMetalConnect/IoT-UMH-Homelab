@@ -54,7 +54,7 @@ docker compose up -d
 
 **Setup Steps:**
 1. **Fixed IP**: Configure Pi networking - [docs/network-setup.md](docs/network-setup.md)
-2. **UMH Core**: Deploy on separate system - [UMH docs](https://www.umh.app/docs/getting-started/installation/)
+2. **UMH Core**: Deploy on separate system - [UMH Core docs](https://docs.umh.app/)
 3. **UMH Configuration**:
    - **Bridge** (MQTT ingestion): `configs/umh/mqtt-input.yaml`
    - **Data Model** (structured data): `configs/umh/data-model.yaml` 
@@ -116,6 +116,13 @@ IoT-UMH-Homelab/
 - **Fixed IP Required**: For reliable operation
 
 ---
+
+## 🔗 UMH Core Resources
+
+- **[UMH Core Documentation](https://docs.umh.app/)** - Official UMH Core docs
+- **[UMH Core GitHub Repository](https://github.com/united-manufacturing-hub/united-manufacturing-hub)** - Source code and issues
+- **[UMH Management Console](https://management.umh.app/)** - Cloud-based monitoring and configuration
+- **[UMH Website](https://www.umh.app/)** - Product overview and enterprise offerings
 
 ## Contact
 
