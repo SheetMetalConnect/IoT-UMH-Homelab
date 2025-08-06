@@ -55,7 +55,10 @@ docker compose up -d
 **Setup Steps:**
 1. **Fixed IP**: Configure Pi networking - [docs/network-setup.md](docs/network-setup.md)
 2. **UMH Core**: Deploy on separate system - [UMH docs](https://www.umh.app/docs/getting-started/installation/)
-3. **Bridge Config**: Use examples in `configs/umh/umh-config-example.yaml`
+3. **UMH Configuration**:
+   - **Bridge** (MQTT ingestion): `configs/umh/mqtt-input.yaml`
+   - **Data Model** (structured data): `configs/umh/data-model.yaml` 
+   - **Stand-alone Flow** (InfluxDB export): `configs/umh/influxdb-output.yaml`
 4. **Devices**: Connect MQTT devices - see [docs/](docs/) 
 
 **Services:**
@@ -76,7 +79,7 @@ See [docs/setup-guide.md](docs/setup-guide.md) for complete instructions.
 IoT-UMH-Homelab/
 ├── docker-compose.yaml    # Main stack
 ├── docs/                  # Documentation
-├── configs/umh/           # UMH configuration  
+├── configs/umh/           # UMH configurations (Bridge + Data Model + Stand-alone Flow)  
 ├── examples/grafana/      # Dashboard templates
 └── README.md
 ```
@@ -96,9 +99,12 @@ IoT-UMH-Homelab/
                                                  [InfluxDB Writer]
 ```
 
-**Flow**: Devices → MQTT → UMH → Kafka → InfluxDB → Grafana
+**Flow**: Devices → MQTT Bridge → UNS → Data Model → Stand-alone Flow → InfluxDB → Grafana
 
-UMH Core creates Unified Namespace and processes data through Kafka. Simple home devices get industrial-grade analytics.
+**UMH Architecture**:
+1. **Bridge** - MQTT device connectivity with health monitoring
+2. **Data Model** - Transform raw data into structured schema  
+3. **Stand-alone Flow** - Export processed data to InfluxDB
 
 ---
 
