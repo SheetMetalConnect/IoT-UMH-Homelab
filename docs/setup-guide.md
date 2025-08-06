@@ -6,7 +6,7 @@ Follow this guide to deploy the IoT Homelab with UMH Core integration.
 
 - Raspberry Pi with Docker and Docker Compose
 - Separate system for UMH Core deployment
-- **Any MQTT devices**: Tasmota, Home Assistant, ESP32 sensors, custom builds, etc.
+- **Any MQTT devices**: Tasmota, ESP32 sensors, custom builds, existing MQTT producers, etc.
 - Network access between all systems
 
 **Note**: This is an example setup - adapt it to whatever IoT devices you have in your home.
@@ -38,6 +38,8 @@ Services available at:
 - MQTT: `tcp://YOUR_PI_IP:1883`
 - Node-RED: `http://YOUR_PI_IP:1880`
 
+**Management**: Use Docker CLI or install CasaOS for a beautiful web interface to manage containers and quick access to your services.
+
 ### 3. Configure UMH Core
 
 Deploy UMH Core on a separate system, then configure it using the examples in `configs/umh/umh-config-example.yaml`.
@@ -54,8 +56,8 @@ Configure your IoT devices to publish to `tcp://YOUR_PI_IP:1883` using consisten
 
 **Examples**:
 - **Tasmota**: See `examples/tasmota/` for configuration
-- **Home Assistant**: See `examples/home-assistant/` for MQTT setup  
-- **Custom devices**: Use any MQTT client library
+- **ESP32/Custom devices**: Use any MQTT client library to publish to the broker
+- **Existing MQTT producers**: If you already have devices publishing MQTT, just point them to this broker
 
 ### 5. Node-RED (Optional)
 
