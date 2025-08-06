@@ -50,7 +50,7 @@ cd IoT-UMH-Homelab
 docker compose up -d
 ```
 
-**Advanced Users**: If you already have Docker and understand the stack, just run `docker compose up -d` and configure UMH Core separately. Don't forget to network the stack to UMH-core.
+**Advanced Users**: If you already have Docker and understand the stack, just run `docker compose up -d` and configure UMH Core separately. **Important**: Since both systems run Docker containers, you must either merge UMH Core into this Docker Compose stack, or create a shared Docker network between the two systems for container-to-container communication.
 
 **Setup Steps:**
 1. **Fixed IP**: Configure Pi networking - [docs/network-setup.md](docs/network-setup.md)

@@ -44,11 +44,34 @@ Services available at:
 
 Deploy UMH Core on a separate system, then configure it using the examples in `configs/umh/umh-config-example.yaml`.
 
+**Networking Options:**
+- **Option A (Recommended)**: Keep UMH Core on separate system using shared Docker network
+- **Option B**: Merge UMH Core into the same Docker Compose stack for easier management
+
+**For Option A (Separate Systems)**: Create a shared Docker network between both systems:
+```bash
+# On both systems, create the same network
+docker network create umh-homelab-network
+
+# Add this network to your docker-compose.yaml
+networks:
+  umh-homelab-network:
+    external: true
+
+# UMH Core containers connect to the same network
+# Use container names instead of IP addresses:
+# - MQTT: tcp://mosquitto:1883
+# - InfluxDB: http://influxdb:8086
+```
+
+**For Option B (Same Stack)**: Add UMH Core services to your `docker-compose.yaml` and use internal Docker networking with container names.
+
 Replace placeholders:
-- `YOUR_PI_IP`: Your Raspberry Pi's fixed IP
 - `YOUR_ORG`: Organization name for InfluxDB
 - `YOUR_SITE`: Site/location identifier
 - `YOUR_INFLUX_TOKEN`: InfluxDB access token
+- **For Option A**: Use container names (`mosquitto`, `influxdb`) instead of IP addresses
+- **For Option B**: Use internal Docker networking with container names
 
 ### 4. Device Configuration
 
