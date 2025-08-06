@@ -1,0 +1,57 @@
+# UMH Core Data Model Configuration
+# Data models define the structure and schema for your industrial data
+# This creates the office_device model for Tasmota power and temperature monitoring
+
+datamodels:
+  office_device:
+    versions:
+      v1:
+        structure:
+          kwhtoday:
+            _payloadshape: timeseries-number
+          power:
+            _payloadshape: timeseries-number
+          temperature:
+            _payloadshape: timeseries-number
+
+# Stream Processor to transform raw data into structured data model
+streamprocessors:
+  - name: office_device_structured
+    desiredState: active
+    streamProcessorConfig:
+      contract: office_device:v1
+      sources:
+        # Map raw data topics to structured model fields
+        kwhtoday: "umh.v1.{{ .ORG }}.{{ .SITE }}.office.+._raw.kwhtoday"
+        power: "umh.v1.{{ .ORG }}.{{ .SITE }}.office.+._raw.power"
+        temperature: "umh.v1.{{ .ORG }}.{{ .SITE }}.office.+._raw.temperature"
+      # Output structured data to UNS with office_device contract
+      # Results in topics like: umh.v1.ORG.SITE.office.device._office_device.kwhtoday
+      variables:
+        ORG: "YOUR_ORG"
+        SITE: "YOUR_SITE"
+
+# Data Model Guide:
+# 
+# Simple Fields:
+# temperature:
+#   _payloadshape: timeseries-number
+#
+# Folder with Multiple Fields:
+# vibration:
+#   x-axis:
+#     _payloadshape: timeseries-number
+#   y-axis:
+#     _payloadshape: timeseries-number
+#
+# Reference Another Model:
+# motor:
+#   _refModel:
+#     name: motor
+#     version: v1
+
+# Notes:
+# 1. Data models define the schema for structured data
+# 2. Stream processors transform raw data into structured models
+# 3. The _payloadshape defines the data type (timeseries-number, timeseries-string, etc.)
+# 4. Structured data uses different topic naming: ._office_device.field instead of ._raw.field

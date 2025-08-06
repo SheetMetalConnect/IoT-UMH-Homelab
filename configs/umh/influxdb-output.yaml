@@ -1,40 +1,56 @@
-# UMH Core InfluxDB Output Configuration  
-# This file configures UMH Core to consume processed data from Kafka
-# and write it to your InfluxDB time-series database
+# UMH Core Stand-alone Flow - InfluxDB Data Export
+# Stand-alone flows are used for data transformation and export to external systems
+# This flow consumes data from the UNS and writes it to InfluxDB
 
-# Kafka Input - Read processed data from UMH Kafka topics
-input:
-  kafka:
-    addresses:
-      - localhost:9092  # UMH Core's internal Kafka
-    client_id: umh_influxdb_writer
-    consumer_group: influxdb_consumer
-    topics:
-      - umh.messages
-
-# Data Processing Pipeline - Convert UMH format to InfluxDB line protocol
-pipeline:
-  processors:
-    - bloblang: |-
-        root = if metadata("kafka_key").contains("umh.v1.YOUR_ORG.YOUR_SITE") && metadata("kafka_key").contains("_historian") {
-          "tasmota_sensors,topic=" + metadata("kafka_key") + " value=" + this.value.string() + " " + this.timestamp_ms.string()
-        } else {
-          deleted()
-        }
-
-# InfluxDB Output - Write time-series data to your database
-output:
-  http_client:
-    batching:
-      count: 1
-    headers:
-      Authorization: Token YOUR_INFLUX_TOKEN
-      Content-Type: text/plain
-    max_in_flight: 1
-    retry_period: 1s
-    timeout: 5s
-    url: http://YOUR_PI_IP:8086/api/v2/write?org=YOUR_ORG&bucket=YOUR_BUCKET&precision=ms
-    verb: POST
+dataFlow:
+  - name: influxdb-export
+    desiredState: active
+    dataFlowComponentConfig:
+      benthos:
+        input:
+          uns:
+            topics:
+              # Subscribe to raw data from office devices
+              - "umh.v1.{{ .ORG }}.{{ .SITE }}.office.+._raw.+"
+        pipeline:
+          processors:
+            - bloblang: |-
+                # Convert UNS topic structure to InfluxDB line protocol
+                let topic_parts = metadata("umh_topic").split(".");
+                let org = topic_parts[1];
+                let site = topic_parts[2]; 
+                let area = topic_parts[3];
+                let device = topic_parts[4];
+                let contract = topic_parts[5];
+                let tag_name = topic_parts[6];
+                
+                # Only process _raw data contract
+                root = if contract == "_raw" {
+                  "tasmota_sensors,org=" + org + ",site=" + site + ",area=" + area + ",device=" + device + ",tag=" + tag_name + " value=" + this.value.string() + " " + this.timestamp_ms.string()
+                } else {
+                  deleted()
+                }
+        output:
+          http_client:
+            batching:
+              count: 10
+              period: "1s"
+            headers:
+              Authorization: "Token {{ .INFLUX_TOKEN }}"
+              Content-Type: "text/plain"
+            max_in_flight: 5
+            retry_period: "1s"
+            timeout: "5s"
+            url: "http://{{ .INFLUX_HOST }}:{{ .INFLUX_PORT }}/api/v2/write?org={{ .INFLUX_ORG }}&bucket={{ .INFLUX_BUCKET }}&precision=ms"
+            verb: POST
+      variables:
+        ORG: "YOUR_ORG"
+        SITE: "YOUR_SITE"
+        INFLUX_HOST: "YOUR_PI_IP"
+        INFLUX_PORT: "8086"
+        INFLUX_TOKEN: "YOUR_INFLUX_TOKEN"
+        INFLUX_ORG: "YOUR_ORG"
+        INFLUX_BUCKET: "YOUR_BUCKET"
 
 # Placeholder Values to Replace:
 # YOUR_ORG                 - e.g., DKLP (must match MQTT input config)

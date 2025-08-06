@@ -1,52 +1,64 @@
-# UMH Core MQTT Input Configuration
-# This file configures UMH Core to subscribe to MQTT topics from your IoT devices
-# and process them into the Unified Namespace structure
+# UMH Core Bridge Configuration - MQTT Device Connectivity
+# Bridges are used for device connectivity with health monitoring and UNS integration
+# This configures a bridge to connect Tasmota devices to the Unified Namespace
 
-# MQTT Input - Subscribe to device data from your IoT stack
-input:
-  mqtt:
-    client_id: YOUR_UNIQUE_CLIENT_ID
-    topics:
-      # Replace with your actual device topics
-      - tele/YOUR_ORG/YOUR_SITE/tasmota/desk/SENSOR
-      - tele/YOUR_ORG/YOUR_SITE/tasmota/siderack/SENSOR
-      - tele/YOUR_ORG/YOUR_SITE/tasmota/cabinet/SENSOR
-      # Add more topics as needed
-    urls:
-      - tcp://YOUR_PI_IP:1883
-
-# Data Processing Pipeline - Transforms MQTT data into UMH format
-pipeline:
-  processors:
-    - javascript:
-        defaults: |
-          let topic_parts = (msg.meta["mqtt_topic"] || "").split("/");
-          let device_id = topic_parts[4] || "unknown";
-          msg.meta.location_path = "YOUR_ORG.YOUR_SITE." + device_id;
-          msg.meta.data_contract = "_historian";
-          return msg;
-        conditions:
-          - if: msg.payload?.ENERGY?.Today != null
-            then: |-
-              msg.meta.tag_name = "kwhtoday";
-              msg.meta.timestamp_ms = Date.now();
-              msg.payload = msg.payload.ENERGY.Today;
-              return msg;
-          # Add more conditions for other data points as needed
-          # Example for power consumption:
-          # - if: msg.payload?.ENERGY?.Power != null
-          #   then: |-
-          #     msg.meta.tag_name = "power";
-          #     msg.meta.timestamp_ms = Date.now();
-          #     msg.payload = msg.payload.ENERGY.Power;
-          #     return msg;
-
-# Output to UMH Kafka topics
-output:
-  kafka:
-    addresses:
-      - localhost:9092
-    topic: umh.messages
+protocolConverter:
+  - name: tasmota-office-bridge
+    desiredState: active
+    protocolConverterServiceConfig:
+      location:
+        2: "office"        # Area level
+        3: "tasmota-device" # Device level
+      config:
+        connection:
+          nmap:
+            target: "{{ .MQTT_BROKER_IP }}"
+            port: "{{ .MQTT_BROKER_PORT }}"
+        dataflowcomponent_read:
+          benthos:
+            input:
+              mqtt:
+                client_id: "{{ .CLIENT_ID }}"
+                topics:
+                  - "tele/{{ .ORG }}/{{ .SITE }}/tasmota/+/SENSOR"
+                urls:
+                  - "tcp://{{ .MQTT_BROKER_IP }}:{{ .MQTT_BROKER_PORT }}"
+            pipeline:
+              processors:
+                - tag_processor:
+                    defaults: |
+                      let topic_parts = (msg.meta["mqtt_topic"] || "").split("/");
+                      let device_id = topic_parts[4] || "unknown";
+                      msg.meta.location_path = "{{ .location_path }}." + device_id;
+                      msg.meta.data_contract = "_raw";
+                      return msg;
+                    conditions:
+                      - if: msg.payload?.ENERGY?.Today != null
+                        then: |-
+                          msg.meta.tag_name = "kwhtoday";
+                          msg.meta.timestamp_ms = Date.now();
+                          msg.payload = msg.payload.ENERGY.Today;
+                          return msg;
+                      - if: msg.payload?.ENERGY?.Power != null
+                        then: |-
+                          msg.meta.tag_name = "power";
+                          msg.meta.timestamp_ms = Date.now();
+                          msg.payload = msg.payload.ENERGY.Power;
+                          return msg;
+                      - if: msg.payload?.SI7021?.Temperature != null
+                        then: |-
+                          msg.meta.tag_name = "temperature";
+                          msg.meta.timestamp_ms = Date.now();
+                          msg.payload = msg.payload.SI7021.Temperature;
+                          return msg;
+            output:
+              uns: {}
+      variables:
+        MQTT_BROKER_IP: "YOUR_PI_IP"
+        MQTT_BROKER_PORT: "1883"
+        CLIENT_ID: "umh-tasmota-bridge"
+        ORG: "YOUR_ORG"
+        SITE: "YOUR_SITE"
 
 # Placeholder Values to Replace:
 # YOUR_UNIQUE_CLIENT_ID    - e.g., mqtt-ingestion-client-001
