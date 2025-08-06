@@ -1,0 +1,46 @@
+# Environment variables and configuration
+.env
+.env.local
+config.yaml
+
+# Docker volumes and data
+mosquitto/data/
+mosquitto/log/
+grafana_data/
+influxdb_data/
+nodered_data/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+
+# Credentials and secrets
+*.key
+*.pem
+*.cert
+credentials/
+secrets/
+
+# Backup files
+*.bak
+*.backup
