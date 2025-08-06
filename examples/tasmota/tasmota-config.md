@@ -1,6 +1,8 @@
 # Tasmota Device Configuration
 
-Example configuration for Tasmota smart sockets to work with the IoT Homelab setup.
+Example configuration for Tasmota devices (smart sockets, sensors, etc.) to work with the IoT Homelab setup.
+
+This is one example - adapt the concepts to whatever MQTT devices you have in your home.
 
 ## Basic MQTT Configuration
 
