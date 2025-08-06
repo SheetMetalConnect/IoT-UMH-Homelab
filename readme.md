@@ -1,4 +1,4 @@
-![excalidraw-animate (1)](https://github.com/user-attachments/assets/fe96857d-0849-4f1e-9c5f-e1affcb448eb)# IoT Homelab with United Manufacturing Hub
+# IoT Homelab with United Manufacturing Hub
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 [![Docker](https://img.shields.io/badge/Docker-Required-blue.svg)](https://www.docker.com/)
