@@ -9,6 +9,9 @@
 
 My actual working IoT homelab setup using United Manufacturing Hub (UMH) for industrial-grade data processing. This demonstrates how to bridge consumer IoT devices (like Tasmota power sockets) into a proper industrial data architecture.
 
+<img width="1472" height="819" alt="image" src="https://github.com/user-attachments/assets/d3c94faf-fa7b-4ac7-9fbc-71031b4ec951" />
+
+
 ### My Current Setup
 
 - **3x Tasmota Smart Sockets** - Publishing power metrics via MQTT
